@@ -149,13 +149,12 @@ class WPLE_Custom_Schedules {
 		$scheduling_max_increment  = get_option( 'wple_scheduling_max_increment',  60 );
 		$scheduling_last_increment = 0;
 		
-		//
-		if ( ! $scheduling_auto_increment ) return;
-		
 		$ebay_schedule_time = isset( $_POST['bulkschedule_startdate'] ) ? esc_attr( $_POST['bulkschedule_startdate'] ) : '';
 		
 		if ( is_array( $id ) ) {
 
+			if ( ! $scheduling_auto_increment ) return;
+			
 			foreach ( $id as $single_id ) {
 
 				if ( DateTime::createFromFormat('Y-m-d H:i', $ebay_schedule_time ) ) {

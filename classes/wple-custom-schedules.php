@@ -13,7 +13,10 @@ class WPLE_Custom_Schedules {
 
 		// modify listing
 		add_action( 'wple_filter_listing_item', 			array( __CLASS__, 'filter_listing_item' 	), 10, 5 );
-		add_action( 'wple_filter_listing_item', 			array( __CLASS__, 'handle_auto_increment' 	), 20, 5 );
+		//add_action( 'wple_filter_listing_item', 			array( __CLASS__, 'handle_auto_increment' 	), 20, 5 );
+
+		// add custom action to listings table's bulk action select box
+
 
 	}
 
@@ -105,7 +108,7 @@ class WPLE_Custom_Schedules {
 
 
 	// handle auto increment options
-	static public function handle_auto_increment( $item, $listing, $profile_details, $post_id, $reviseItem ) {
+	/*static public function handle_auto_increment( $item, $listing, $profile_details, $post_id, $reviseItem ) {
 
 		// do nothing if this is a ReviseItem request
 		if ( $reviseItem ) return $item;
@@ -136,9 +139,71 @@ class WPLE_Custom_Schedules {
 		update_option( 'wple_scheduling_last_increment', $scheduling_last_increment + $scheduling_auto_increment );
 
 		return $item;
-	} // filter_listing_item()
+	}*/ // handle_auto_increment()
 
+	// bulk schedule option callback
+	static public function bulk_schedule( $id ) {
 
+		// get options
+		$scheduling_auto_increment = get_option( 'wple_scheduling_auto_increment', '' );
+		$scheduling_max_increment  = get_option( 'wple_scheduling_max_increment',  60 );
+		$scheduling_last_increment = 0;
+		
+		//
+		if ( ! $scheduling_auto_increment ) return;
+		
+		$ebay_schedule_time = isset( $_POST['bulkschedule_startdate'] ) ? esc_attr( $_POST['bulkschedule_startdate'] ) : '';
+		
+		if ( is_array( $id ) ) {
+
+			foreach ( $id as $single_id ) {
+
+				if ( DateTime::createFromFormat('Y-m-d H:i', $ebay_schedule_time ) ) {
+
+					// convert date/time from local timezone to UTC
+					$tz = self::getLocalTimeZone();
+					$dt = new DateTime( $ebay_schedule_time, new DateTimeZone( $tz ) );
+					$dt->setTimeZone( new DateTimeZone( 'UTC' ) );
+
+					$dt->add( new DateInterval( 'PT' . $scheduling_last_increment . 'M') );
+					$ebay_schedule_time = $dt->format('Y-m-d H:i:s');
+					
+					if ( $scheduling_last_increment >= $scheduling_max_increment ) $scheduling_last_increment = 0;
+					$scheduling_last_increment += $scheduling_auto_increment;
+
+				} else {
+					$ebay_schedule_time = '';
+				}
+
+				if ( $ebay_schedule_time ) {
+					update_post_meta( $single_id, '_ebay_schedule_time', $ebay_schedule_time );
+				} else {
+					delete_post_meta( $single_id, '_ebay_schedule_time');
+				}
+
+			}
+		} else {
+			if ( DateTime::createFromFormat('Y-m-d H:i', $ebay_schedule_time ) ) {
+
+				// convert date/time from local timezone to UTC
+				$tz = self::getLocalTimeZone();
+				$dt = new DateTime( $ebay_schedule_time, new DateTimeZone( $tz ) );
+				$dt->setTimeZone( new DateTimeZone( 'UTC' ) );
+
+				$ebay_schedule_time = $dt->format('Y-m-d H:i:s');
+				
+			} else {
+				$ebay_schedule_time = '';
+			}
+
+			if ( $ebay_schedule_time ) {
+				update_post_meta( $id, '_ebay_schedule_time', $ebay_schedule_time );
+			} else {
+				delete_post_meta( $id, '_ebay_schedule_time');
+			}
+		}
+
+	} // bulk_schedule()
 
     static public function getLocalTimeZone() {
 

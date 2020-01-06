@@ -3,7 +3,7 @@
 Plugin Name:       WPLE Advanced Scheduling Add-On
 Plugin URI:        https://github.com/wp-lab/wple-scheduling-addon
 Description:       Extend WP-Lister for eBay with custom schedule times per product and incremental bulk scheduling.
-Version:           0.1
+Version:           1.1
 Author:            Matthias Krok
 License:           GNU General Public License v2
 License URI:       http://www.gnu.org/licenses/gpl-2.0.html
